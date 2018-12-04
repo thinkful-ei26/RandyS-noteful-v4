@@ -1,11 +1,14 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const passport = require('passport');
 
 const express = require('express');
 const router = express.Router();
 
 const User = require('../models/user');
+
+// router.use('/', passport.authenticate('jwt', {session: false, failWithError: true}));
 
 router.post('/', (req, res, next) => {
   

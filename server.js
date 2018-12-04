@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const localStrategy = require('./passport/local');
 const authRouter = require('./routes/auth');
-
+const jwtStrategy = require('./passport/jwt');
 
 const { PORT, MONGODB_URI } = require('./config');
 
@@ -24,6 +24,7 @@ app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'common', {
 }));
 
 passport.use(localStrategy);
+passport.use(jwtStrategy);
 
 // Create a static webserver
 app.use(express.static('public'));
