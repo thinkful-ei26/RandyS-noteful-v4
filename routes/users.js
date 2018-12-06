@@ -62,7 +62,7 @@ router.post('/', (req, res, next) => {
   const tooBigField = Object.keys(sizedFields)
     .find(field => 'max' in sizedFields[field] && 
     sizedFields[field].max < req.body[field].trim().length);
-    
+
   if (tooBigField) {
     const max = sizedFields[tooBigField].max;
     const err = new Error(`Field: '${tooBigField}' must be at most ${max} characters long`);
@@ -71,7 +71,10 @@ router.post('/', (req, res, next) => {
   }
 
   let { fullname, username, password } = req.body;
-  fullname = fullname.trim();
+  if (fullname) {
+    fullname = fullname.trim();
+  }
+  
 
   return User.hashPassword(password)
     .then(digest => {
