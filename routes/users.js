@@ -38,22 +38,6 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  // if (req.body.username.length < 1) {
-  //   const err = new Error('Your username must be at least 1 character long');
-  //   err.status = 422;
-  //   return next(err);
-  // }
-
-  // if (req.body.password.length < 8) {
-  //   const err = new Error('Your password must be between at least 8 characters long');
-  //   err.status = 422;
-  //   return next(err);
-  // } else if (req.body.password.length > 72 ){
-  //   const err = new Error('Your password can be a maximum of 72 characters long');
-  //   err.status = 422;
-  //   return next(err);
-  // }
-
   const sizedFields = {
     username: {
       min: 1
@@ -64,23 +48,30 @@ router.post('/', (req, res, next) => {
     }
   };
 
-  const tooSmallField = Object.keys(sizedFields).find(field => 'min' in sizedFields[field] && field.min > req.body[field].trim().length);
-  const tooBigField = Object.keys(sizedFields).find(field => 'max' in sizedFields[field] && field.max < req.body[field].trim().length);
+  const tooSmallField = Object.keys(sizedFields)
+    .find(field => 'min' in sizedFields[field] && 
+    sizedFields[field].min > req.body[field].trim().length);
   
-  if (tooSmallField || tooBigField) {
-    return res.status(422).json({
-      code: 422,
-      reason: 'ValidationError',
-      message: tooSmallField 
-        ? `Must be at least ${sizedFields[tooSmallField]
-          .min} characters long`
-        : `Must be at most ${sizedFields[tooBigField]
-          .max} characters long`,
-      location: tooSmallField || tooBigField
-    });
+  if (tooSmallField) {
+    const min = sizedFields[tooSmallField].min;
+    const err = new Error(`Field: '${tooSmallField}' must be at least ${min} characters long`);
+    err.status = 422;
+    return next(err);
+  }
+ 
+  const tooBigField = Object.keys(sizedFields)
+    .find(field => 'max' in sizedFields[field] && 
+    sizedFields[field].max < req.body[field].trim().length);
+    
+  if (tooBigField) {
+    const max = sizedFields[tooBigField].max;
+    const err = new Error(`Field: '${tooBigField}' must be at most ${max} characters long`);
+    err.status = 422;
+    return next(err);
   }
 
-  const { fullname, username, password } = req.body;
+  let { fullname, username, password } = req.body;
+  fullname = fullname.trim();
 
   return User.hashPassword(password)
     .then(digest => {
@@ -89,6 +80,7 @@ router.post('/', (req, res, next) => {
         password: digest,
         fullname
       };
+      console.log('USERNAME )_)_)_)__)_)_)_)_)', username);
       return User.create(newUser);
     })
     .then(result => {
