@@ -150,7 +150,7 @@ const noteful = (function () {
   }
 
   function handleNoteSearchSubmit() {
-    $('.js-notes-search-form').on('submit', event => {
+    $('.js-notes-search-form').on('keyup', event => {
       event.preventDefault();
 
       store.currentQuery.searchTerm = $(event.currentTarget).find('input').val();
