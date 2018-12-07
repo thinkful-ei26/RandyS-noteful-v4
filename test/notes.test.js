@@ -590,7 +590,7 @@ describe('Noteful API - Notes', function () {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.include.keys('id', 'title', 'userId', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.include.keys('id', 'title', 'userId', 'content', 'tags', 'createdAt', 'updatedAt');
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);

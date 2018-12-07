@@ -12,6 +12,15 @@ const router = express.Router();
 
 router.use('/', passport.authenticate('jwt', {session: false, failWithError: true}));
 
+function validateFolders(folder) {
+  Folder.findById(folder);
+}
+
+function validateTags(tags) {
+  tags.forEach(item => {
+    Tag.findById(item);
+  });
+}
 
 /* ========== GET/READ ALL ITEMS ========== */
 router.get('/', (req, res, next) => {
@@ -40,10 +49,7 @@ router.get('/', (req, res, next) => {
   Note.find(filter)
     .populate('tags')
     .sort({ updatedAt: 'desc' })
-    .then(results => {
-      
-      res.json(results);
-    })
+    .then((results) => res.json(results))
     .catch(err => {
       next(err);
     });
@@ -88,16 +94,22 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
+  //check for valid folderId
   if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
   }
 
+  //check for tags with valid Ids
   if (tags) {
     const badIds = tags.filter((tag) => !mongoose.Types.ObjectId.isValid(tag));
     if (badIds.length) {
       const err = new Error('The `tags` array contains an invalid `id`');
+      err.status = 400;
+      return next(err);
+    } else if (!Array.isArray(tags)) {
+      const err = new Error('The `tags` property must be an array');
       err.status = 400;
       return next(err);
     }
@@ -112,40 +124,30 @@ router.post('/', (req, res, next) => {
   if (newNote.tags === undefined) {
     delete newNote.tags;
   }
-
-  // console.log(newNote.tags);
-
+  
   if (newNote.tags) {
-    if (!Array.isArray(newNote.tags)) {
-      const err = new Error('The `tags` property must be an array');
-      err.status = 400;
-      return next(err);
-    }
-    newNote.tags.forEach(tag => {
-      Tag.findById(tag)
-        .then(result => {
-          if (!result.userId === userId) {
-            const err = new Error('The tags array contains an invalid id');
-            err.status = 400;
-            return next(err);
-          }
-        })
-        .catch(err => {
-          next(err);
-        });
-    });
-  }
-
-  if (newNote.folder) {
-    Folder.findById(newNote.folderId) 
-      .then(folder => {
-        if (folder.userId !== userId) {
-          const err = new Error('The `folderId` is not valid');
+    validateTags(newNote.tags)
+      .then(result => {
+        if (!result.userId === userId) {
+          const err = new Error('The tags array contains an invalid id');
           err.status = 400;
           return next(err);
         }
       })
       .catch(err => {
+        next(err);
+      });
+  }
+
+  if (newNote.folder) {
+    validateFolders(newNote.folder)
+      .then(result => {
+        if (!result.userId === userId) {
+          const err = new Error('The tags array contains an invalid id');
+          err.status = 400;
+          return next(err);
+        }
+      }).catch(err => {
         next(err);
       });
   }
@@ -192,6 +194,25 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
+  
+  if (toUpdate.folderId === '') {
+    delete toUpdate.folderId;
+    toUpdate.$unset = {folderId : 1};
+  }
+
+  if (toUpdate.folder) {
+    validateFolders(toUpdate.folder)
+      .then(folder => {
+        if (folder.userId !== userId) {
+          const err = new Error('The `folderId` is not valid');
+          err.status = 400;
+          return next(err);
+        }
+      })
+      .catch(err => {
+        next(err);
+      });
+  }
 
   if (toUpdate.tags) {
     if (!Array.isArray(toUpdate.tags)) {
@@ -222,25 +243,6 @@ router.put('/:id', (req, res, next) => {
     });
   }
 
-  if (toUpdate.folderId === '') {
-    delete toUpdate.folderId;
-    toUpdate.$unset = {folderId : 1};
-  }
-
-  if (toUpdate.folder) {
-    Folder.findById(toUpdate.folderId) 
-      .then(folder => {
-        if (folder.userId !== userId) {
-          const err = new Error('The `folderId` is not valid');
-          err.status = 400;
-          return next(err);
-        }
-      })
-      .catch(err => {
-        next(err);
-      });
-  }
-  
   Note.findByIdAndUpdate({ _id: id, userId }, toUpdate, { new: true })
     .then(result => {
       if (result) {
