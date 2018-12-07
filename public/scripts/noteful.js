@@ -324,8 +324,10 @@ const noteful = (function () {
   function handleNewTagSubmit() {
     $('.js-new-tag-form').on('submit', event => {
       event.preventDefault();
+      
 
       const newTagName = $('.js-new-tag-entry').val();
+      $('.js-new-tag-entry').val('');
       api.create('/api/tags', { name: newTagName })
         .then(() => {
           return api.search('/api/tags');
