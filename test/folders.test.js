@@ -280,9 +280,6 @@ describe('Noteful API - Folders', function () {
             .send(updateItem);
         })
         .then(function (res) {
-          console.log(data.userId);
-          console.log('res.body', res.body)
-          console.log('data', data)
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');

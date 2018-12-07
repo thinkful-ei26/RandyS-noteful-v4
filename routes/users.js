@@ -83,7 +83,6 @@ router.post('/', (req, res, next) => {
         password: digest,
         fullname
       };
-      console.log('USERNAME )_)_)_)__)_)_)_)_)', username);
       return User.create(newUser);
     })
     .then(result => {

@@ -551,8 +551,6 @@ describe('Noteful API - Notes', function () {
             .set('Authorization', `Bearer ${token}`).send(updateItem);
         })
         .then(function (res) {
-          console.log(res.body.folderId);
-          console.log(data.folderId);
           expect(res).to.have.status(200);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
@@ -595,7 +593,6 @@ describe('Noteful API - Notes', function () {
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
           expect(res.body.userId).to.equal(data.userId.toString());
-          expect(res.body.tags).to.deep.equal(updateItem.tags);
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           // expect note to have been updated
           expect(new Date(res.body.updatedAt)).to.greaterThan(data.updatedAt);
